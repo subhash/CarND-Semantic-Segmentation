@@ -121,6 +121,16 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
 tests.test_train_nn(train_nn)
 
+def run2():
+    input = tf.Variable(tf.ones((10, 10, 36, 512)))
+    pool5 = tf.layers.max_pooling2d(input, (2,2), strides=(2,2), padding='same')
+    fc6 = tf.layers.conv2d(pool5, 4096, kernel_size=(7,7), strides=(1,1), padding='same')
+    fc7 = tf.layers.conv2d(fc6, 4096, kernel_size=(1,1), strides=(1,1), padding='same')
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        p5, f6, f7 = sess.run([tf.shape(pool5), tf.shape(fc6), tf.shape(fc7)])
+        print(p5, f6, f7)
+
 def run():
     num_classes = 2
     image_shape = (160, 576)
@@ -160,13 +170,13 @@ def run():
         sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
         # saver.restore(sess, "./new2.ckpt")
 
-        epochs = 15
-        batch_size = 30
+        epochs = 10
+        batch_size = 4
         train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, image_input,
                  correct_label, keep_prob, learning_rate)
 
-        # save_path = saver.save(sess, "./new6.ckpt")
-        # print("Model saved in file: %s" % save_path)
+        save_path = saver.save(sess, "./new7.ckpt")
+        print("Model saved in file: %s" % save_path)
 
         # TODO: Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, image_input)
