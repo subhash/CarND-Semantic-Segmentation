@@ -13,11 +13,11 @@ The [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php) pro
 #### Encoder
 We pick three layers from the VGG model which are expected to provide us with useful features - Layer 3, Layer 4, Layer 7. As we go deeper with layers, we gain more semantic information, but lose locality information. For example, if we were to predict only based on Layer 7 features, we would get only coarse predictions:
 
-![](./images/half-filled.png)
+![](./images/um_000005-part.png)
 
 Instead, we create "skip layers" from shallow layers which give finer predictions:
 
-![](./images/filled.png)
+![](./images/um_000005.png)
 
 In order to incorporate the tensors from the various layers, we first upsample Layer 7 and Layer 4 by a 4x and 2x transpose convolution respectively. After an addition of the result with Layer 3, we have our encoded feature spectrum with 256 channels.
 
@@ -43,16 +43,11 @@ The results show significant quality around epoch 5 and keep improving upto epoc
 #### Samples
 The model performs well for separating roads and even detects multiple lanes and avoids vehicles on the road
 
-|                       |                             |                            |
-|-----------------------|-----------------------------|----------------------------|
-|![](./images/good.png) | ![](./images/good-lane.png) | ![](./images/good-car.png) |
+|                            |                             |                             |                               |
+|----------------------------|-----------------------------|-----------------------------|-------------------------------|
+|![](./images/um_000015.png) | ![](./images/um_000017.png) | ![](./images/um_000032.png) | ![](./images/um_000061.png)   |
+|![](./images/umm_000016.png)| ![](./images/umm_000035.png)| ![](./images/uu_000002.png) | ![](./images/uu_000049.png)   |
 
-It sometimes spills over on to vehicles and pavements. 
-
-
-|                       |                             |                            |
-|-----------------------|-----------------------------|----------------------------|
-|![](./images/near-car.png) | ![](./images/pavement-spill.png) | ![](./images/car-spill.png) |
 
 #### Reflections
 - Cost falls down drastically after a couple of epochs and keeps improving with more epochs. Perhaps, more epochs than 15 could improve results further
