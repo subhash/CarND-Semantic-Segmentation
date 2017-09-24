@@ -13,7 +13,7 @@ The [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php) pro
 #### Encoder
 We pick three layers from the VGG model which are expected to provide us with useful features - Layer 3, Layer 4, Layer 7. As we go deeper with layers, we gain more semantic information, but lose locality information. For example, if we were to predict only based on Layer 7 features, we would get only coarse predictions:
 
-![](./images/um_000005-part.png)
+![](./images/um_000005_part.png)
 
 Instead, we create "skip layers" from shallow layers which give finer predictions:
 
@@ -25,14 +25,14 @@ In order to incorporate the tensors from the various layers, we first upsample L
 The decoder part of the FCN involves upsampling the encoded features to the original image size by running a transpose convolution with 256 input channels and 2 output channels, representing the "road" and "not-road" predictions. All layers are configured with an normal initializer that provides weights with a standard-deviation of `0.01` and a regularizer to penalize large weights.
 
 #### Training
-The final decoded layer is reshaped into a 2D tensor and its cross-entropy is calculated against the manually annotated image. We use an Adam optimizer to minimize the cross-entropy loss. The learning-rate was set at a constant value of 0.0001 and keep-probability at 0.5. The dropout layers, along with regularization prevent overfitting. The loss reduced to `0.25` by epoch 4 and to `0.12` by epoch 10.
+The final decoded layer is reshaped into a 2D tensor and its cross-entropy is calculated against the manually annotated image. We use an Adam optimizer to minimize the cross-entropy loss. The learning-rate was set at a constant value of 0.0001 and keep-probability at 0.5. The dropout layers, along with regularization prevent overfitting. The loss reduced to `0.08` by epoch 10 and to `0.03` by epoch 20.
 
 ##### Hyperparameters
 
 Learning-rate: 0.0001 (constant)
 Keep probability: 0.5
-Batch-size: 30
-Epochs: 15
+Batch-size: 4
+Epochs: 20
 
 #### Inference
 Inference is made by subjecting the output layer to a softmax function, slicing out only the `road` class values, thresholding those values to be above `0.5`. This tensor provides the mask representing road pixels and can be overlapped onto the image.
