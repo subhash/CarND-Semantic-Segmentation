@@ -7,13 +7,17 @@ In this project, you'll label the pixels of a road in images using a Fully Convo
 The [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php) provides training data as a set of urban road images and labels in the form of corresponding images where the lanes and roads have been manually marked. It also provides a set of testing data without ground truth. We use this to train our FCN and test its inference on the testing data.
 
 #### VGG16 model
-[VGG16] (https://arxiv.org/abs/1409.1556) is a convolutional neural network model used in the [ImageNet challenge] (http://image-net.org/challenges/LSVRC/2015/index) for classifying images into one of 1000 classes. In this project, we take the pretrained VGG model and try to reuse its first convolutional stage as the encoder for our FCN
+[VGG16](https://arxiv.org/abs/1409.1556) is a convolutional neural network model used in the [ImageNet challenge](http://image-net.org/challenges/LSVRC/2015/index) for classifying images into one of 1000 classes. In this project, we take the pretrained VGG model and try to reuse its first convolutional stage as the encoder for our FCN
 
 ### Model
 #### Encoder
 We pick three layers from the VGG model which are expected to provide us with useful features - Layer 3, Layer 4, Layer 7. As we go deeper with layers, we gain more semantic information, but lose locality information. For example, if we were to predict only based on Layer 7 features, we would get only coarse predictions:
 
+![](./images/half-filled.png)
+
 Instead, we create "skip layers" from shallow layers which give finer predictions:
+
+![](./images/filled.png)
 
 In order to incorporate the tensors from the various layers, we first upsample Layer 7 and Layer 4 by a 4x and 2x transpose convolution respectively. After an addition of the result with Layer 3, we have our encoded feature spectrum with 256 channels.
 
@@ -37,11 +41,23 @@ Inference is made by subjecting the output layer to a softmax function, slicing 
 The results show significant quality around epoch 5 and keep improving upto epoch 15
 
 #### Samples
+The model performs well for separating roads and even detects multiple lanes and avoids vehicles on the road
 
+|                       |                             |                            |
+|-----------------------|-----------------------------|----------------------------|
+|![](./images/good.png) | ![](./images/good-lane.png) | ![](./images/good-car.png) |
+
+It sometimes spills over on to vehicles and pavements. 
+
+
+|                       |                             |                            |
+|-----------------------|-----------------------------|----------------------------|
+|![](./images/near-car.png) | ![](./images/pavement-spill.png) | ![](./images/car-spill.png) |
 
 #### Reflections
 - Cost falls down drastically after a couple of epochs and keeps improving with more epochs. Perhaps, more epochs than 15 could improve results further
-- 
+- The model could be improved by balancing the data better by augmentation
+- Shadows pose a minor issue, so image normalization might also help
 
 
 ### Setup
