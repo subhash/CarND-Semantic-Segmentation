@@ -60,15 +60,40 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
 
-    layer7_up = tf.layers.conv2d_transpose(vgg_layer7_out, 256, (4,4), strides=(4,4), name='layer7_up', padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
-    layer4_up = tf.layers.conv2d_transpose(vgg_layer4_out, 256, (2,2), strides=(2,2), name='layer4_up', padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
-    prediction_layer = tf.add(vgg_layer3_out, tf.add(layer7_up, layer4_up), name='prediction_layer')
-    prediction_layer_up = tf.layers.conv2d_transpose(prediction_layer, 2, (8,8), strides=(8,8), padding='same', name='prediction_layer_up',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+    # layer7_up = tf.layers.conv2d_transpose(vgg_layer7_out, 256, (4,4), strides=(4,4), name='layer7_up', padding='same',
+    #     kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+    # layer4_up = tf.layers.conv2d_transpose(vgg_layer4_out, 256, (2,2), strides=(2,2), name='layer4_up', padding='same',
+    #     kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+    # prediction_layer = tf.add(vgg_layer3_out, tf.add(layer7_up, layer4_up), name='prediction_layer')
+    # prediction_layer_up = tf.layers.conv2d_transpose(prediction_layer, 2, (8,8), strides=(8,8), padding='same', name='prediction_layer_up',
+    #     kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+    #
+    # return prediction_layer_up
 
-    return prediction_layer_up
+    layer3_pred = tf.layers.conv2d(vgg_layer3_out, 2, 1, padding='same',
+                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                   kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+    layer4_pred = tf.layers.conv2d(vgg_layer4_out, 2, 1, padding='same',
+                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                   kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+    layer7_pred = tf.layers.conv2d(vgg_layer7_out, 2, 1, padding='same',
+                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                   kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+
+    fuse1 = tf.add(layer4_pred, tf.layers.conv2d_transpose(layer7_pred, 2, 4, strides=(2,2), padding='same',
+                                                           kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                                           kernel_initializer=tf.truncated_normal_initializer(
+                                                               stddev=0.01)))
+    fuse2 = tf.add(layer3_pred, tf.layers.conv2d_transpose(fuse1, 2, 4, strides=(2, 2), padding='same',
+                                                           kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                                           kernel_initializer=tf.truncated_normal_initializer(
+                                                               stddev=0.01)))
+    final_layer = tf.layers.conv2d_transpose(fuse2, 2, 16, strides=(8,8), padding='same',
+                                             kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+                                             kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
+
+    return final_layer
+
 
 tests.test_layers(layers)
 
@@ -87,7 +112,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
     cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label)
     cross_entropy_loss = tf.reduce_mean(cross_entropy)
-    train_op = tf.train.AdamOptimizer().minimize(cross_entropy_loss)
+    train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cross_entropy_loss)
 
     return logits, train_op, cross_entropy_loss
 
@@ -170,12 +195,12 @@ def run():
         sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
         # saver.restore(sess, "./new2.ckpt")
 
-        epochs = 10
+        epochs = 20
         batch_size = 4
         train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, image_input,
                  correct_label, keep_prob, learning_rate)
 
-        save_path = saver.save(sess, "./new7.ckpt")
+        save_path = saver.save(sess, "./new9.ckpt")
         print("Model saved in file: %s" % save_path)
 
         # TODO: Save inference data using helper.save_inference_samples
