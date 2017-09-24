@@ -25,7 +25,7 @@ In order to incorporate the tensors from the various layers, we first upsample L
 The decoder part of the FCN involves upsampling the encoded features to the original image size by running a transpose convolution with 256 input channels and 2 output channels, representing the "road" and "not-road" predictions. All layers are configured with an normal initializer that provides weights with a standard-deviation of `0.01` and a regularizer to penalize large weights.
 
 #### Training
-The final decoded layer is reshaped into a 2D tensor and its cross-entropy is calculated against the manually annotated image. We use an Adam optimizer to minimize the cross-entropy loss. The learning-rate was set at a constant value of 0.0001 and keep-probability at 0.5. The dropout layers, along with regularization prevent overfitting. The loss reduced to `0.25` by epoch 4 and to `0.12` by epoch 10.
+The final decoded layer is reshaped into a 2D tensor and its cross-entropy is calculated against the manually annotated image. We use an Adam optimizer to minimize the cross-entropy loss. The learning-rate was set at a constant value of 0.0001 and keep-probability at 0.5. The dropout layers, along with regularization prevent overfitting. The loss reduced to `0.08` by epoch 10 and to `0.03` by epoch 20.
 
 ##### Hyperparameters
 
