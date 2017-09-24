@@ -13,32 +13,32 @@ The [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php) pro
 #### Encoder
 We pick three layers from the VGG model which are expected to provide us with useful features - Layer 3, Layer 4, Layer 7. As we go deeper with layers, we gain more semantic information, but lose locality information. For example, if we were to predict only based on Layer 7 features, we would get only coarse predictions:
 
-![](./images/part_filled.png)
+![](./images/part-filled.png)
 
 Instead, we create "skip layers" from shallow layers which give finer predictions:
 
 ![](./images/filled.png)
 
-In order to incorporate the tensors from the various layers, we first upsample Layer 7 and Layer 4 by a 4x and 2x transpose convolution respectively. After an addition of the result with Layer 3, we have our encoded feature spectrum with 256 channels.
+In order to incorporate the tensors from the various layers, we first resample Layer 7, Layer 4 and Layer 3 to give predictions for 2 classes, representing the "road" and "not-road" predictions. Then, resampled Layer 7 is upsampled by 2x and added to predictions from Layer 4. The resultant prediction layer is upsampled again by 2x and merged with predictions from Layer 3. Now, we have our encoded feature spectrum.
 
 #### Decoder
-The decoder part of the FCN involves upsampling the encoded features to the original image size by running a transpose convolution with 256 input channels and 2 output channels, representing the "road" and "not-road" predictions. All layers are configured with an normal initializer that provides weights with a standard-deviation of `0.01` and a regularizer to penalize large weights.
+The decoder part of the FCN involves upsampling the encoded features to the original image size by running a 8x transpose convolution. All layers are configured with an normal initializer that provides weights with a standard-deviation of `0.01` and a regularizer to penalize large weights.
 
 #### Training
 The final decoded layer is reshaped into a 2D tensor and its cross-entropy is calculated against the manually annotated image. We use an Adam optimizer to minimize the cross-entropy loss. The learning-rate was set at a constant value of 0.0001 and keep-probability at 0.5. The dropout layers, along with regularization prevent overfitting. The loss reduced to `0.08` by epoch 10 and to `0.03` by epoch 20.
 
 ##### Hyperparameters
 
-Learning-rate: 0.0001 (constant)
-Keep probability: 0.5
-Batch-size: 4
-Epochs: 20
+- Learning-rate: 0.0001 (constant)
+- Keep probability: 0.5
+- Batch-size: 4
+- Epochs: 20
 
 #### Inference
 Inference is made by subjecting the output layer to a softmax function, slicing out only the `road` class values, thresholding those values to be above `0.5`. This tensor provides the mask representing road pixels and can be overlapped onto the image.
 
 ### Results
-The results show significant quality around epoch 5 and keep improving upto epoch 15
+The results show significant quality around epoch 5 and keep improving upto epoch 20
 
 #### Samples
 The model performs well for separating roads and even detects multiple lanes and avoids vehicles on the road
@@ -50,7 +50,7 @@ The model performs well for separating roads and even detects multiple lanes and
 
 
 #### Reflections
-- Cost falls down drastically after a couple of epochs and keeps improving with more epochs. Perhaps, more epochs than 15 could improve results further
+- Cost falls down drastically after a couple of epochs and keeps improving with more epochs. Perhaps, more epochs than 20 could improve results further
 - The model could be improved by balancing the data better by augmentation
 - Shadows pose a minor issue, so image normalization might also help
 
