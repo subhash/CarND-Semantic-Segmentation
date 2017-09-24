@@ -31,8 +31,8 @@ The final decoded layer is reshaped into a 2D tensor and its cross-entropy is ca
 
 Learning-rate: 0.0001 (constant)
 Keep probability: 0.5
-Batch-size: 30
-Epochs: 15
+Batch-size: 4
+Epochs: 20
 
 #### Inference
 Inference is made by subjecting the output layer to a softmax function, slicing out only the `road` class values, thresholding those values to be above `0.5`. This tensor provides the mask representing road pixels and can be overlapped onto the image.
