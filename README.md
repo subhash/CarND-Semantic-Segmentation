@@ -13,11 +13,11 @@ The [Kitti Road dataset](http://www.cvlibs.net/datasets/kitti/eval_road.php) pro
 #### Encoder
 We pick three layers from the VGG model which are expected to provide us with useful features - Layer 3, Layer 4, Layer 7. As we go deeper with layers, we gain more semantic information, but lose locality information. For example, if we were to predict only based on Layer 7 features, we would get only coarse predictions:
 
-![](./images/um_000005_part.png)
+![](./images/part_filled.png)
 
 Instead, we create "skip layers" from shallow layers which give finer predictions:
 
-![](./images/um_000005.png)
+![](./images/filled.png)
 
 In order to incorporate the tensors from the various layers, we first upsample Layer 7 and Layer 4 by a 4x and 2x transpose convolution respectively. After an addition of the result with Layer 3, we have our encoded feature spectrum with 256 channels.
 
